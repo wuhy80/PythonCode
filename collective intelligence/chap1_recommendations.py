@@ -66,6 +66,33 @@ def topMatches(prefs, person, n = 5, similarity=sim_pearson):
 	scores.reverse()
 	return scores[0:n]
 
+def getRecommendations(prefs, person, similarity=sim_pearson):
+	totals={}
+	simSums = {}
+	for other in prefs:
+		# don't compre me to myseld
+		if other == person: continue
+		sim = similarity(prefs, person, other)
+
+		# ignore scores of zere or lower
+		if sim<=0: continue
+		for item in prefs[other]:
+			# only score movies I haven't seen yet
+			if item not in prefs[person] or prefs[person][item] == 0:
+				# Similarity * scores
+				totals.setdefault(item, 0)
+				totals[item] += prefs[other][item] * sim
+				# Sum of Similarity
+				simSums.setdefault(item, 0)
+				simSums[item] += sim
+		# create the normalized List 
+		rankings = [(total/simSums[item], item) for item, total in totals.items()]
+
+		rankings.sort()
+		rankings.reverse()
+		return rankings
+		
+	
 print("Lisa Rosa and Claudia Puig distance is ")
 print(sim_distance(critics, 'Lisa Rosa', 'Gene Seymour'))
 
@@ -73,3 +100,5 @@ print("Lisa Rosa and Claudia Puig pearson is ")
 print(sim_pearson(critics, 'Lisa Rosa', 'Gene Seymour'))
 
 print(topMatches(critics, 'Toby',  n=3))
+
+print(getRecommendations(critics, 'Toby'))
